@@ -1,26 +1,29 @@
-int redLED = 11;
-int greenLED = 10;
-int blueLED = 9;
+// hardware
 int LDR = 0;
-float x = 0.0; // name this better
-float x_increment = 0.0001; // also name this better
+int LEDs[3] = {11, 10, 9};
 
-unsigned int pulseDelay = 1;
-int power = 25;
-float radMultiplier = 180/PI;
-// int minDarkness = 900; // prod - calibrated to my room
-int minDarkness = 600; // dev
+// mood lamp config
+float x_increment = 0.00001; // controls granularity of colour changes, also affects speed
+unsigned int pulseDelay = 1; // controls speed of transition between RGB values
+unsigned int power = 25; // positive integer 2-255, controls brightness
+int minDarkness = 900; // prod - calibrated to my room
+// int minDarkness = 600; // dev, I tend to code with the lights on :P
 
 float RGB[3] = {0.0, 0.0, 0.0};
+float x = 0.0;
+float radMultiplier = 180/PI;
 
 void setup() {
-    pinMode(redLED, OUTPUT);
-    pinMode(greenLED, OUTPUT);
-    pinMode(blueLED, OUTPUT);
+    for (int i = 0; i < 3; i++) {
+        pinMode(LEDs[i], OUTPUT);
+    }
+    analogWriteToLEDs(RGB, LEDs);
+}
 
-    digitalWrite(redLED, LOW);
-    digitalWrite(greenLED, LOW);
-    digitalWrite(blueLED, LOW);
+void analogWriteToLEDs(float values[3], int LEDs[3]) {
+    for (int i = 0; i < 3; i++) {
+        analogWrite(LEDs[i], values[i]);
+    }
 }
 
 void loop() {
@@ -28,33 +31,15 @@ void loop() {
         x_increment = 0 - x_increment;
     }
 
-    // why? this looks vaguely familiar - what math is it? why isn't this simpler?
-    RGB[0] = power * abs(sin(x * radMultiplier));
-    RGB[1] = power * abs(sin((x + PI/3) * radMultiplier));
-    RGB[2] = power * abs(sin(x + (2*PI)/3) * radMultiplier);
-    if (analogRead(LDR) > minDarkness) {
-        analogWrite(redLED, RGB[0]);
-        analogWrite(greenLED, RGB[1]);
-        analogWrite(blueLED, RGB[2]);
-    } else {
-        // Lights go on, lamp goes off
-        digitalWrite(redLED, LOW);
-        digitalWrite(greenLED, LOW);
-        digitalWrite(blueLED, LOW);
+    for (int i = 0; i < 3; i++) {
+        RGB[i] = power * abs(sin((x + (i*PI)/3) * radMultiplier));
     }
 
-    // calculates a delay that's inversely proportional to the LED's current brightness
-    for (int i = 0; i < 3; i++) {
-        if (RGB[i] < 1) {
-            delay(8 * pulseDelay);
-        } else if (RGB[i] < 5) {
-            delay(4 * pulseDelay);
-        } else if (RGB[i] < 10) {
-            delay(2 * pulseDelay);
-        } else if (RGB[i] < 100) {
-            delay(pulseDelay);
-        } // why an empty else? can i simplify this?
+    if (analogRead(LDR) <= minDarkness) {
+        RGB[0] = RGB[1] = RGB[2] = 0.0;
     }
-    delay(1);
+    analogWriteToLEDs(RGB, LEDs);
+
+    delay(pulseDelay);
     x += x_increment;
 }

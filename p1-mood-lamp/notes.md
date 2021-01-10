@@ -4,6 +4,9 @@
 * U-shaped jumper cables! Like regular jumper cables, but flat!
 * The analogue version of `digitalWrite` is... `analogWrite`!
 * Not a fan of the sudden change from 100% brightness to 0%. Rather than having the delay be inversely proportional to the brightness, I want it inversely proportional to the magnitude away from the "middle" - whether light or dark.
+Meh, this whole variable transition speed thing is overrated. Nuked.
+* Visualizing the equations helped it click in my head. It's just three sine curves (well, piped through `abs()`), each offset by a third of half a cycle (because it takes half a cycle for the y-value to go back to what it was at 0).
+![RGB variation graphed with Desmos](RGB-variation-graphed.png)
 
 ## Questions
 
